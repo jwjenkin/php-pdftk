@@ -7,16 +7,15 @@ jobs:
     strategy:
       matrix:
         php:
-          - "5.3"
-          - "5.4"
-          - "5.5"
-          - "5.6"
           - "7.0"
           - "7.1"
           - "7.2"
           - "7.3"
           - "7.4"
           - "8.0"
+          - "8.1"
+          - "8.2"
+          - "8.3"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,19 +36,31 @@ jobs:
       - name: Update composer
         run: composer self-update
 
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache composer cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-
-
       - name: Install composer packages
         run: composer update --prefer-dist --no-interaction --no-progress --optimize-autoloader --ansi
 
       - name: Run phpunit
         run: vendor/bin/phpunit --color=always
+
+  build-image:
+    name: Build PHP ${{ matrix.php }} images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php:
+          - "7.0"
+          - "7.1"
+          - "7.2"
+          - "7.3"
+          - "7.4"
+          - "8.0"
+          - "8.1"
+          - "8.2"
+          - "8.3"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: docker build --build-arg "PHP_VERSION=${{ matrix.php }}" -t pdftk:php-${{ matrix.php }} .
