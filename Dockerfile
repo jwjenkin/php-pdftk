@@ -1,4 +1,4 @@
-FROM wodby/php:8.2
+FROM wodby/php:${PHP_VERSION:-8.2}
 
 USER root
 
